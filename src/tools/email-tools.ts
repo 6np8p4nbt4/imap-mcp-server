@@ -139,7 +139,6 @@ export function emailTools(
 
     const messages = await imapService.searchEmails(accountId, folder, criteria, searchOptions);
 
-    // IMAP UID SEARCH returns UIDs in ascending order (oldest → newest).
     // Sort by internalDate DESC before applying limit so callers get the
     // newest matches, mirroring the searchAllFolders path above (#107).
     const sortedMessages = messages.sort((a, b) => b.date.getTime() - a.date.getTime());

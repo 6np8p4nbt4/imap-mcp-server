@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Batch UID support on `imap_move_email`, `imap_mark_as_read`, and `imap_mark_as_unread` (#106). `uid` now accepts either a single UID or an array of UIDs. Batch moves go through a single `imap_move` per UID with per-uid results attributed in the response; batch flag operations use one IMAP STORE sequence-set (atomic at the server level). Single-UID callers see the legacy response shape unchanged.
 - New `SearchOptions` interface in `src/types/index.ts` (with `DEFAULT_BODY_MAX_LENGTH` / `DEFAULT_BODY_FORMAT` constants) so search-criteria and output-shaping options stay cleanly separated.
 
+### Fixed
+- `imap_search_emails` single-folder path now returns the **newest** matches when `limit` cuts the result (#107). The service returns UIDs in ascending order (oldest first), and the tool used to `slice(0, limit)` directly, so callers received the oldest matches. Sort by `internalDate` DESC before applying `limit`, matching the cross-folder search path. Tests in `tests/email-tools-search-all.test.ts`.
+- `imap-setup` CLI no longer crashes with `SyntaxError: Invalid regular expression flags` on Node 18 (#108). The crash was triggered transitively by `ora@9` → `string-width@8.2.1`, which uses the regex `/v` flag (Unicode set mode, requires Node ≥20). Pinned `string-width` to `^7.2.0` via npm `overrides`; tests in `tests/dependencies.test.ts` walk `node_modules` to ensure no transitive copy of `string-width@8.x` sneaks back in.
+
 ### Tests
 - New `tests/email-tools-include-body-and-batch.test.ts` (14 cases) covering backwards compat + `includeBody` propagation + body-format options + batch UID happy path and partial failure. Existing `tests/email-tools-search-all.test.ts` and `tests/email-tools-thread.test.ts` updated to match the new option-arg shapes.
 
